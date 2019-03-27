@@ -1,0 +1,5 @@
+{
+	"CHAT_ID": "-100000000",
+	"TELEGRAM_API_BASE_URL": "https://api.telegram.org/botxxxxxxxxxxxxxxxxxxxxxx/",
+	"GET_MESSAGE_SHEET": "https://spreadsheets.google.com/feeds/cells/xxxxxxxxxxxxxxxxxxxxxxxx/2/public/values?alt=json"
+}
