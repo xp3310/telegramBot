@@ -1,5 +1,6 @@
-const request = require('request');
+const commonLib = require('commonLib');
 const config = require('config.json');
+const pttParser = require('pttParser');
 
 const URL = {
     TELEGRAM: {
@@ -10,40 +11,22 @@ const URL = {
         GET_MESSAGE_SHEET: config.GET_MESSAGE_SHEET
     }
 };
+const FORCE_SKIP = false;
 const HOUR_OFFSET = 8;
 const AVAILIABLE_HOURS = [9, 10, 11, 13, 14, 15, 16, 17, 18, 19];
 const AVAILIABLE_DAY = [1, 2, 3, 4, 5];
-const DURATION_THRESHOLD = 30;
+const DURATION_THRESHOLD = 30 ;
 
 exports.handler = async (event) => {
-    function doRequest(url, param, actionType='post') {
-        return new Promise(resolve => {
-            if (actionType === 'post') {
-                request.post(url, {
-                    json: param
-                }, (error, response, body) => {
-                    if (!error) {
-                        return resolve(body);
-                    }
-                } );
-            }
-            else {
-                request.get(url, (error, response, body) => {
-                    if (!error) {
-                        return resolve(body);
-                    }
-                });
-            }
-        });
-    };
 
     async function isLongTimeNoChat() {
         let now = new Date();
+        // JZ:這是手動幫UTC時間+8嗎
         now.setUTCHours(now.getHours() + HOUR_OFFSET);
 
         let nowHour = now.getHours(),
             nowDay = now.getDay(),
-            updatedMsg = await doRequest(URL.TELEGRAM.GET_UPDATE, {
+            updatedMsg = await commonLib.doRequest(URL.TELEGRAM.GET_UPDATE, {
                 chat_id: config.CHAT_ID,
                 offset: -1,
                 limit: 1
@@ -58,7 +41,7 @@ exports.handler = async (event) => {
     }
 
     async function getRandMessageFromGoogleSheet() {
-        let messagePoolFromGoogleSheet = await doRequest(URL.GOOGLE.GET_MESSAGE_SHEET, {}, 'get'),
+        let messagePoolFromGoogleSheet = await commonLib.doRequest(URL.GOOGLE.GET_MESSAGE_SHEET, {}, 'get'),
             messageJsonData = JSON.parse(messagePoolFromGoogleSheet),
             messageData = messageJsonData.feed.entry,
             randMessage = messageData[Math.floor(Math.random() * messageData.length)].content['$t'];
@@ -68,7 +51,7 @@ exports.handler = async (event) => {
     }
 
     function sendMessageToTelegram(message) {
-        doRequest(URL.TELEGRAM.SEND, {
+        commonLib.doRequest(URL.TELEGRAM.SEND, {
             chat_id: config.CHAT_ID,
             text: message
         });
@@ -76,9 +59,19 @@ exports.handler = async (event) => {
 
 
     return new Promise(async (resolve)=> {
+
+        if(FORCE_SKIP) {
+            return;
+        }
+        
         if ( await isLongTimeNoChat() ) {
-            let randMessage = await getRandMessageFromGoogleSheet();
-            sendMessageToTelegram(randMessage);
+
+            let randMessage = await getRandMessageFromGoogleSheet(),
+                pttArticle = await pttParser.getArticle(),
+                selecteMessage = Math.floor( Math.random() * 2 ) === 0 ? randMessage
+                                                                      : pttArticle.url;
+
+            sendMessageToTelegram(selecteMessage);
         }
 
     });

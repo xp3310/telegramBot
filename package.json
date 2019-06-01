@@ -1,19 +1,17 @@
 {
-  "name": "telegrambot",
+  "name": "parser",
   "version": "1.0.0",
   "description": "",
-  "main": "botpost.js",
+  "main": "index.js",
+  "dependencies": {
+    "import": "0.0.6",
+    "node-html-parser": "^1.1.13",
+    "request": "^2.88.0"
+  },
+  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/xp3310/telegramBot.git"
-  },
   "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/xp3310/telegramBot/issues"
-  },
-  "homepage": "https://github.com/xp3310/telegramBot#readme"
+  "license": "ISC"
 }
